@@ -44,3 +44,36 @@ def test_repeat_back_input(model):
 
     generated_text = extract_generated_text(response)
     validate_response(generated_text, expected_substring="Repeat this sentence again.")
+
+def test_sentence_completion_equality(model):
+    """Test model produces identical output with deterministic settings (do_sample=False)"""
+    response1 = model(
+        "Complete this sentence: The sky is",
+        max_new_tokens=30,
+        truncation=True,
+        do_sample=False)
+
+    generated_text_1 = extract_generated_text(response1)
+
+    response2 = model(
+        "Complete this sentence: The sky is",
+        max_new_tokens=30,
+        truncation=True,
+        do_sample=False)
+
+    generated_text_2 = extract_generated_text(response2)
+
+    assert generated_text_1 == generated_text_2
+
+
+def test_empty_string_input_handling(model):
+    """Test model handles empty input gracefully without crashing"""
+    response = model(
+        "",
+        max_new_tokens=30,
+        truncation=True,
+        do_sample=False
+    )
+
+    generated_text = extract_generated_text(response)
+    validate_response(generated_text)
