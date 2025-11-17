@@ -65,7 +65,6 @@ def test_sentence_completion_equality(model):
 
     assert generated_text_1 == generated_text_2
 
-
 def test_empty_string_input_handling(model):
     """Test model handles empty input gracefully without crashing"""
     response = model(
@@ -77,3 +76,18 @@ def test_empty_string_input_handling(model):
 
     generated_text = extract_generated_text(response)
     validate_response(generated_text)
+
+def test_response_structure_validation(model):
+    """Validate pipeline returns expected structure: list of dicts with 'generated_text'"""
+    response = model(
+        "Test",
+        max_new_tokens=30,
+        truncation=True,
+        do_sample=False
+    )
+
+    # Validate response structure
+    assert type(response) == list
+    assert type(response[0]) == dict
+    assert "generated_text" in response[0]
+    assert type(response[0]["generated_text"]) == str
