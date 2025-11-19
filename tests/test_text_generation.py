@@ -3,6 +3,7 @@
 import pytest
 from transformers import pipeline
 from framework.response_handler import extract_generated_text, validate_response
+import time
 
 @pytest.fixture()
 def model():
@@ -91,3 +92,35 @@ def test_response_structure_validation(model):
     assert type(response[0]) == dict
     assert "generated_text" in response[0]
     assert type(response[0]["generated_text"]) == str
+
+@pytest.mark.parametrize("model_name", ["gpt2", "gpt2-medium"])
+def test_basic_generation_across_models(model_name):
+    """Test text generation works consistently across different model variants"""
+    pipe = pipeline("text-generation", model_name)
+
+    response = pipe(
+        "What is artificial intelligence?",
+        max_new_tokens=30,
+        truncation=True,
+        do_sample=False
+    )
+
+    generated_text = extract_generated_text(response)
+    validate_response(generated_text, expected_substring="What is artificial intelligence?")
+
+def test_model_performance(model):
+    """Test model inference completes within reasonable time (baseline performance)"""
+    threshold = 5.0
+    start_time = time.time()
+
+    response = model(
+        "How many galaxies are there in the universe?",
+        max_new_tokens=30,
+        truncation=True,
+        do_sample=False
+    )
+
+    end_time = time.time()
+    duration = end_time - start_time
+    print(f"Inference took {duration:.2f} seconds")
+    assert duration < threshold, f"Inference took {duration:.2f}s, exceeded threshold of {threshold}s"
